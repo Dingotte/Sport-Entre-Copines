@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Team Renfo — Planning</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;700;800&display=swap');
+
+:root {
+  --bg: #121213;
+  --card: #1D1D1F;
+  --card-alt: #29292B;
+  --pink: #C41C68;
+  --lime: #D6FF3D;
+  --cream: #F5F3EE;
+  --muted: #8F8F96;
+  --border: rgba(245,243,238,0.09);
+}
+
+#ps-root {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Manrope', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 0 0 40px 0;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+#ps-root * { box-sizing: border-box; }
+
+.ps-hero {
+  background: linear-gradient(135deg, var(--pink) 0%, #500E2E 100%);
+  padding: 32px 22px 26px 22px;
+  position: relative;
+  overflow: hidden;
+}
+.ps-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px; top: -40px;
+  width: 160px; height: 160px;
+  background: var(--lime);
+  border-radius: 50%;
+  opacity: 0.22;
+}
+.ps-eyebrow {
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--cream);
+  opacity: 0.85;
+  margin: 0 0 6px 0;
+}
+.ps-title {
+  font-family: 'Anton', 'Manrope', sans-serif;
+  font-size: 40px;
+  line-height: 0.95;
+  margin: 0;
+  color: var(--cream);
+  text-shadow: 3px 3px 0 rgba(0,0,0,0.15);
+}
+.ps-title .accent { color: var(--lime); }
+.ps-sub {
+  font-size: 14px;
+  color: var(--cream);
+  opacity: 0.9;
+  margin-top: 10px;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.ps-body { padding: 20px 16px 0 16px; }
+
+.ps-section-label {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--muted);
+  margin: 22px 0 12px 2px;
+}
+
+.ps-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0;
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.ps-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 16px 0 16px;
+}
+.ps-card-type {
+  font-family: 'Anton', sans-serif;
+  font-size: 22px;
+  color: var(--cream);
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.ps-duree-badge {
+  background: var(--lime);
+  color: #1A0E17;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 10px;
+}
+.ps-when {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--pink);
+  margin-top: 6px;
+  padding: 0 16px;
+  text-transform: capitalize;
+}
+.ps-desc {
+  font-size: 13.5px;
+  color: var(--cream);
+  opacity: 0.9;
+  line-height: 1.5;
+  padding: 10px 16px 0 16px;
+}
+.ps-materiel {
+  font-size: 12.5px;
+  color: var(--muted);
+  padding: 6px 16px 0 16px;
+}
+.ps-materiel b { color: var(--cream); opacity: 0.8; }
+
+.ps-participants {
+  padding: 14px 16px 4px 16px;
+  border-top: 1px dashed var(--border);
+  margin-top: 14px;
+}
+.ps-count {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--lime);
+  margin-bottom: 8px;
+}
+.ps-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.ps-name-chip {
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 10px 5px 12px;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ps-name-chip button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.ps-empty-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.ps-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 16px 16px;
+  flex-wrap: wrap;
+}
+.ps-btn {
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 11px 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ps-btn-primary {
+  background: var(--pink);
+  color: var(--cream);
+  flex: 1;
+  min-width: 130px;
+}
+.ps-btn-ghost {
+  background: transparent;
+  color: var(--cream);
+  border: 1px solid var(--border);
+}
+.ps-btn-visio {
+  background: var(--card-alt);
+  color: var(--lime);
+  border: 1px solid rgba(200,255,61,0.3);
+}
+
+.ps-admin-zone {
+  margin-top: 30px;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+.ps-btn-admin {
+  width: 100%;
+  background: var(--card-alt);
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 13px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ps-name-chip button:hover { color: var(--pink); }
+  .ps-btn-primary:hover { background: #E01F68; }
+  .ps-btn-ghost:hover { border-color: var(--lime); color: var(--lime); }
+  .ps-btn-admin:hover { color: var(--cream); border-color: var(--muted); }
+}
+
+.ps-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 999;
+}
+.ps-modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 22px 18px 26px 18px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-top: 3px solid var(--pink);
+}
+.ps-modal h3 {
+  font-family: 'Anton', sans-serif;
+  font-size: 22px;
+  margin: 0 0 16px 0;
+  color: var(--cream);
+}
+.ps-field { margin-bottom: 14px; }
+.ps-field label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.ps-field input, .ps-field textarea {
+  width: 100%;
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  color: var(--cream);
+  border-radius: 10px;
+  padding: 11px 12px;
+  font-size: 14px;
+  font-family: inherit;
+}
+.ps-field input:focus, .ps-field textarea:focus {
+  outline: none;
+  border-color: var(--pink);
+}
+.ps-row2 { display: flex; gap: 10px; }
+.ps-row2 > div { flex: 1; }
+.ps-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.ps-loading, .ps-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Manrope', system-ui, sans-serif;
+}
+</style>
+</head>
+<body>
+
+<div id="ps-root">
+  <div class="ps-hero">
+    <p class="ps-eyebrow">TEAM RENFO • ENTRE COPINES</p>
+    <h1 class="ps-title">ON SE BOUGE<br/><span class="accent">ENSEMBLE.</span></h1>
+    <p class="ps-sub">Choisis ta séance, inscris-toi. Zéro excuse, que du fun 💪</p>
+  </div>
+  <div class="ps-body" id="ps-body">
+    <div class="ps-loading">Chargement du planning…</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script>
+(function() {
+  const firebaseConfig = {
+    apiKey: "AIzaSyDoZbQjv6JL3ct_Gc2Uk3iVmxjFpUVJVvQ",
+    authDomain: "sport-entre-copines.firebaseapp.com",
+    databaseURL: "https://sport-entre-copines-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sport-entre-copines",
+    storageBucket: "sport-entre-copines.firebasestorage.app",
+    messagingSenderId: "940441266071",
+    appId: "1:940441266071:web:2111cdf0b96e96a28146d2"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  let sessions = [];
+  let adminPin = null;
+  const body = document.getElementById('ps-body');
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  function customPrompt(title, opts) {
+    opts = opts || {};
+    return new Promise((resolve) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'ps-modal-overlay';
+      overlay.innerHTML = `
+        <div class="ps-modal">
+          <h3>${escapeHtml(title)}</h3>
+          <div class="ps-field">
+            <input id="ps-prompt-input" type="${opts.type || 'text'}" placeholder="${escapeHtml(opts.placeholder || '')}" />
+          </div>
+          <div class="ps-modal-actions">
+            <button class="ps-btn ps-btn-ghost" id="ps-prompt-cancel" style="flex:1">Annuler</button>
+            <button class="ps-btn ps-btn-primary" id="ps-prompt-ok" style="flex:1">Valider</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const input = overlay.querySelector('#ps-prompt-input');
+      setTimeout(() => input.focus(), 60);
+      function cleanup(val) { overlay.remove(); resolve(val); }
+      overlay.querySelector('#ps-prompt-cancel').onclick = () => cleanup(null);
+      overlay.querySelector('#ps-prompt-ok').onclick = () => cleanup(input.value.trim() || null);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') cleanup(input.value.trim() || null); });
+      overlay.onclick = (e) => { if (e.target === overlay) cleanup(null); };
+    });
+  }
+
+  function customConfirm(message) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'ps-modal-overlay';
+      overlay.innerHTML = `
+        <div class="ps-modal">
+          <h3>Confirmation</h3>
+          <p style="font-size:14px; color:var(--cream); opacity:0.9; margin-bottom:18px;">${escapeHtml(message)}</p>
+          <div class="ps-modal-actions">
+            <button class="ps-btn ps-btn-ghost" id="ps-confirm-no" style="flex:1">Annuler</button>
+            <button class="ps-btn ps-btn-primary" id="ps-confirm-yes" style="flex:1">Confirmer</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelector('#ps-confirm-no').onclick = () => { overlay.remove(); resolve(false); };
+      overlay.querySelector('#ps-confirm-yes').onclick = () => { overlay.remove(); resolve(true); };
+      overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } };
+    });
+  }
+
+  function customAlert(message) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'ps-modal-overlay';
+      overlay.innerHTML = `
+        <div class="ps-modal">
+          <p style="font-size:14px; color:var(--cream); margin-bottom:18px;">${escapeHtml(message)}</p>
+          <div class="ps-modal-actions">
+            <button class="ps-btn ps-btn-primary" id="ps-alert-ok" style="flex:1">OK</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelector('#ps-alert-ok').onclick = () => { overlay.remove(); resolve(); };
+      overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); resolve(); } };
+    });
+  }
+
+  function fmtDate(dateStr) {
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      const jour = JOURS[d.getDay()];
+      const jj = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      return jour + ' ' + jj + '/' + mm;
+    } catch(e) { return dateStr; }
+  }
+
+  function sortSessions(arr) {
+    return arr.slice().sort((a,b) => (a.date+a.heure).localeCompare(b.date+b.heure));
+  }
+
+  function initSessionsListener() {
+    db.ref('sessions').on('value', (snapshot) => {
+      const val = snapshot.val() || {};
+      sessions = Object.keys(val).map(id => ({ id, ...val[id], participants: val[id].participants || [] }));
+      render();
+    }, (error) => {
+      body.innerHTML = '<div class="ps-empty-state">Impossible de charger le planning (connexion). Vérifie ta connexion internet et recharge la page.</div>';
+    });
+  }
+
+  async function checkOrSetPin(promptMsg) {
+    try {
+      const snap = await db.ref('adminPin').once('value');
+      adminPin = snap.exists() ? snap.val() : null;
+    } catch (e) {
+      adminPin = null;
+    }
+    if (!adminPin) {
+      const newPin = await customPrompt("Choisis ton code secret", {placeholder: "4 chiffres minimum"});
+      if (!newPin || newPin.length < 4) return false;
+      adminPin = newPin;
+      try { await db.ref('adminPin').set(newPin); } catch(e) {}
+      return true;
+    }
+    const entered = await customPrompt(promptMsg, {placeholder: "Code secret"});
+    return entered === adminPin;
+  }
+
+  function genId() {
+    return 's' + Date.now() + Math.random().toString(36).slice(2,7);
+  }
+
+  function makeICS(session) {
+    const start = new Date(session.date + 'T' + session.heure + ':00');
+    const end = new Date(start.getTime() + (parseInt(session.duree,10) || 30) * 60000);
+    function fmt(d) {
+      return d.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+    }
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'BEGIN:VEVENT',
+      'UID:' + session.id + '@planning-sport',
+      'DTSTAMP:' + fmt(new Date()),
+      'DTSTART:' + fmt(start),
+      'DTEND:' + fmt(end),
+      'SUMMARY:' + session.type,
+      'DESCRIPTION:' + (session.description || '').replace(/\n/g,'\\n'),
+      'BEGIN:VALARM',
+      'TRIGGER:-PT20M',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Séance dans 20 minutes !',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+    const blob = new Blob([ics], {type: 'text/calendar'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = session.type.replace(/[^a-z0-9]/gi,'_') + '.ics';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  window.psRegister = async function(sessionId) {
+    const name = await customPrompt("Ton prénom pour t'inscrire", {placeholder: "Ton prénom"});
+    if (!name) return;
+    const s = sessions.find(x => x.id === sessionId);
+    if (!s) return;
+    const participants = s.participants || [];
+    if (participants.some(p => p.toLowerCase() === name.toLowerCase())) {
+      await customAlert("Tu es déjà inscrite à cette séance !");
+      return;
+    }
+    try {
+      await db.ref('sessions/' + sessionId + '/participants').set([...participants, name]);
+    } catch (e) {
+      await customAlert("Oups, l'inscription a échoué. Vérifie ta connexion et réessaie.");
+    }
+  };
+
+  window.psUnregisterAt = async function(sessionId, index) {
+    const s = sessions.find(x => x.id === sessionId);
+    if (!s || !s.participants || !s.participants[index]) return;
+    const name = s.participants[index];
+    const ok = await customConfirm(`${name} se désinscrit de cette séance ?`);
+    if (!ok) return;
+    const updated = s.participants.slice();
+    updated.splice(index, 1);
+    try {
+      await db.ref('sessions/' + sessionId + '/participants').set(updated);
+    } catch (e) {
+      await customAlert("Oups, la désinscription a échoué. Vérifie ta connexion et réessaie.");
+    }
+  };
+
+  window.psDownloadICS = function(sessionId) {
+    const s = sessions.find(x => x.id === sessionId);
+    if (s) makeICS(s);
+  };
+
+  window.psDeleteSession = async function(sessionId) {
+    const ok = await checkOrSetPin("Code organisatrice pour supprimer ce créneau");
+    if (!ok) { await customAlert("Code incorrect."); return; }
+    const confirmed = await customConfirm("Supprimer définitivement ce créneau ?");
+    if (!confirmed) return;
+    try {
+      await db.ref('sessions/' + sessionId).remove();
+    } catch (e) {
+      await customAlert("Oups, la suppression a échoué. Vérifie ta connexion et réessaie.");
+    }
+  };
+
+  window.psOpenAddModal = async function() {
+    const ok = await checkOrSetPin("Code organisatrice pour ajouter un créneau");
+    if (!ok) { await customAlert("Code incorrect."); return; }
+    showAddModal();
+  };
+
+  function showAddModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'ps-modal-overlay';
+    overlay.innerHTML = `
+      <div class="ps-modal">
+        <h3>Nouveau créneau ✨</h3>
+        <div class="ps-field">
+          <label>Type de séance</label>
+          <input id="ps-f-type" placeholder="Ex : Abdos fessiers, Full body, Cardio..." />
+        </div>
+        <div class="ps-row2">
+          <div class="ps-field">
+            <label>Date</label>
+            <input id="ps-f-date" type="date" />
+          </div>
+          <div class="ps-field">
+            <label>Heure</label>
+            <input id="ps-f-heure" type="time" />
+          </div>
+        </div>
+        <div class="ps-field">
+          <label>Durée (minutes)</label>
+          <input id="ps-f-duree" type="number" placeholder="30" />
+        </div>
+        <div class="ps-field">
+          <label>Description courte</label>
+          <textarea id="ps-f-desc" rows="2" placeholder="Ex : Séance intense spécial bras, vidéo YouTube fournie"></textarea>
+        </div>
+        <div class="ps-field">
+          <label>Matériel (optionnel)</label>
+          <input id="ps-f-materiel" placeholder="Ex : tapis, haltères légers" />
+        </div>
+        <div class="ps-field">
+          <label>Lien visio (optionnel)</label>
+          <input id="ps-f-lien" placeholder="Lien Zoom / Meet / FaceTime..." />
+        </div>
+        <div class="ps-modal-actions">
+          <button class="ps-btn ps-btn-ghost" id="ps-cancel" style="flex:1">Annuler</button>
+          <button class="ps-btn ps-btn-primary" id="ps-confirm" style="flex:1">Créer le créneau</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('ps-cancel').onclick = () => overlay.remove();
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    document.getElementById('ps-confirm').onclick = async () => {
+      const type = document.getElementById('ps-f-type').value.trim();
+      const date = document.getElementById('ps-f-date').value;
+      const heure = document.getElementById('ps-f-heure').value;
+      const duree = document.getElementById('ps-f-duree').value || '30';
+      const description = document.getElementById('ps-f-desc').value.trim();
+      const materiel = document.getElementById('ps-f-materiel').value.trim();
+      const lienVisio = document.getElementById('ps-f-lien').value.trim();
+      if (!type || !date || !heure) {
+        await customAlert("Merci de remplir au minimum le type, la date et l'heure.");
+        return;
+      }
+      const id = genId();
+      try {
+        await db.ref('sessions/' + id).set({
+          type, date, heure, duree, description, materiel, lienVisio, participants: []
+        });
+        overlay.remove();
+      } catch (e) {
+        await customAlert("Oups, la création a échoué. Vérifie ta connexion et réessaie.");
+      }
+    };
+  }
+
+  function sessionCard(s) {
+    const participants = s.participants || [];
+    const namesHtml = participants.length
+      ? '<div class="ps-names">' + participants.map((n, i) =>
+          `<span class="ps-name-chip">${escapeHtml(n)} <button onclick="psUnregisterAt('${s.id}', ${i})">✕</button></span>`
+        ).join('') + '</div>'
+      : '<p class="ps-empty-note">Personne inscrite pour l’instant — sois la première !</p>';
+
+    return `
+      <div class="ps-card">
+        <div class="ps-card-top">
+          <div class="ps-card-type">${escapeHtml(s.type)}</div>
+          <div class="ps-duree-badge">${escapeHtml(String(s.duree))} min</div>
+        </div>
+        <div class="ps-when">${fmtDate(s.date)} · ${escapeHtml(s.heure)}</div>
+        ${s.description ? `<div class="ps-desc">${escapeHtml(s.description)}</div>` : ''}
+        ${s.materiel ? `<div class="ps-materiel"><b>Matériel :</b> ${escapeHtml(s.materiel)}</div>` : ''}
+        <div class="ps-participants">
+          <div class="ps-count">${participants.length} inscrite${participants.length > 1 ? 's' : ''}</div>
+          ${namesHtml}
+        </div>
+        <div class="ps-actions">
+          <button class="ps-btn ps-btn-primary" onclick="psRegister('${s.id}')">Je m'inscris</button>
+          <button class="ps-btn ps-btn-ghost" onclick="psDownloadICS('${s.id}')">+ Rappel calendrier</button>
+          ${s.lienVisio ? `<button class="ps-btn ps-btn-visio" onclick="window.open('${escapeHtml(s.lienVisio)}','_blank')">Rejoindre la visio</button>` : ''}
+          <button class="ps-btn ps-btn-ghost" onclick="psDeleteSession('${s.id}')" style="flex:0 0 auto;">🗑</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function render() {
+    const sorted = sortSessions(sessions);
+    const today = new Date().toISOString().slice(0,10);
+    const upcoming = sorted.filter(s => s.date >= today);
+    const past = sorted.filter(s => s.date < today);
+
+    let html = '';
+    if (upcoming.length === 0) {
+      html += '<div class="ps-empty-state">Aucune séance prévue pour l’instant. L’organisatrice peut en ajouter une juste en dessous 👇</div>';
+    } else {
+      html += '<div class="ps-section-label">PROCHAINES SÉANCES</div>';
+      html += upcoming.map(sessionCard).join('');
+    }
+    html += `
+      <div class="ps-admin-zone">
+        <button class="ps-btn-admin" onclick="psOpenAddModal()">+ Ajouter un créneau (organisatrice)</button>
+      </div>
+    `;
+    if (past.length > 0) {
+      html += '<div class="ps-section-label" style="opacity:0.6">Séances passées</div>';
+      html += past.map(sessionCard).join('');
+    }
+    body.innerHTML = html;
+  }
+
+  initSessionsListener();
+})();
+</script>
+
+</body>
+</html>

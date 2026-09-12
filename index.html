@@ -544,15 +544,24 @@ html, body {
   window.psOpenAddModal = async function() {
     const ok = await checkOrSetPin("Code organisatrice pour ajouter un créneau");
     if (!ok) { await customAlert("Code incorrect."); return; }
-    showAddModal();
+    showSessionModal(null);
   };
 
-  function showAddModal() {
+  window.psOpenEditModal = async function(sessionId) {
+    const ok = await checkOrSetPin("Code organisatrice pour modifier ce créneau");
+    if (!ok) { await customAlert("Code incorrect."); return; }
+    const s = sessions.find(x => x.id === sessionId);
+    if (!s) return;
+    showSessionModal(s);
+  };
+
+  function showSessionModal(existing) {
+    const isEdit = !!existing;
     const overlay = document.createElement('div');
     overlay.className = 'ps-modal-overlay';
     overlay.innerHTML = `
       <div class="ps-modal">
-        <h3>Nouveau créneau ✨</h3>
+        <h3>${isEdit ? 'Modifier le créneau ✏️' : 'Nouveau créneau ✨'}</h3>
         <div class="ps-field">
           <label>Type de séance</label>
           <input id="ps-f-type" placeholder="Ex : Abdos fessiers, Full body, Cardio..." />
@@ -585,11 +594,22 @@ html, body {
         </div>
         <div class="ps-modal-actions">
           <button class="ps-btn ps-btn-ghost" id="ps-cancel" style="flex:1">Annuler</button>
-          <button class="ps-btn ps-btn-primary" id="ps-confirm" style="flex:1">Créer le créneau</button>
+          <button class="ps-btn ps-btn-primary" id="ps-confirm" style="flex:1">${isEdit ? 'Enregistrer' : 'Créer le créneau'}</button>
         </div>
       </div>
     `;
     document.body.appendChild(overlay);
+
+    if (isEdit) {
+      overlay.querySelector('#ps-f-type').value = existing.type || '';
+      overlay.querySelector('#ps-f-date').value = existing.date || '';
+      overlay.querySelector('#ps-f-heure').value = existing.heure || '';
+      overlay.querySelector('#ps-f-duree').value = existing.duree || '';
+      overlay.querySelector('#ps-f-desc').value = existing.description || '';
+      overlay.querySelector('#ps-f-materiel').value = existing.materiel || '';
+      overlay.querySelector('#ps-f-lien').value = existing.lienVisio || '';
+    }
+
     document.getElementById('ps-cancel').onclick = () => overlay.remove();
     overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
     document.getElementById('ps-confirm').onclick = async () => {
@@ -604,14 +624,16 @@ html, body {
         await customAlert("Merci de remplir au minimum le type, la date et l'heure.");
         return;
       }
-      const id = genId();
+      const id = isEdit ? existing.id : genId();
       try {
-        await db.ref('sessions/' + id).set({
-          type, date, heure, duree, description, materiel, lienVisio, participants: []
-        });
+        if (isEdit) {
+          await db.ref('sessions/' + id).update({ type, date, heure, duree, description, materiel, lienVisio });
+        } else {
+          await db.ref('sessions/' + id).set({ type, date, heure, duree, description, materiel, lienVisio, participants: [] });
+        }
         overlay.remove();
       } catch (e) {
-        await customAlert("Oups, la création a échoué. Vérifie ta connexion et réessaie.");
+        await customAlert(isEdit ? "Oups, la modification a échoué. Vérifie ta connexion et réessaie." : "Oups, la création a échoué. Vérifie ta connexion et réessaie.");
       }
     };
   }
@@ -641,6 +663,7 @@ html, body {
           <button class="ps-btn ps-btn-primary" onclick="psRegister('${s.id}')">Je m'inscris</button>
           <button class="ps-btn ps-btn-ghost" onclick="psDownloadICS('${s.id}')">+ Rappel calendrier</button>
           ${s.lienVisio ? `<button class="ps-btn ps-btn-visio" onclick="window.open('${escapeHtml(s.lienVisio)}','_blank')">Rejoindre la visio</button>` : ''}
+          <button class="ps-btn ps-btn-ghost" onclick="psOpenEditModal('${s.id}')" style="flex:0 0 auto;">✏️</button>
           <button class="ps-btn ps-btn-ghost" onclick="psDeleteSession('${s.id}')" style="flex:0 0 auto;">🗑</button>
         </div>
       </div>

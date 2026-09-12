@@ -297,6 +297,99 @@
   color: var(--muted);
   font-size: 14px;
 }
+
+.ps-view-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.ps-view-btn {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 11px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ps-view-btn.active {
+  background: var(--pink);
+  color: var(--cream);
+  border-color: var(--pink);
+}
+
+.ps-admin-status {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.ps-admin-status a { color: var(--lime); text-decoration: underline; }
+
+.ps-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.ps-cal-title {
+  font-family: 'Anton', sans-serif;
+  font-size: 19px;
+  text-transform: capitalize;
+}
+.ps-cal-nav-btn {
+  background: var(--card-alt);
+  border: 1px solid var(--border);
+  color: var(--cream);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 16px;
+}
+.ps-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.ps-cal-weekday {
+  text-align: center;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--muted);
+  padding: 4px 0 8px 0;
+}
+.ps-cal-cell {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-height: 58px;
+  padding: 4px 3px;
+  overflow: hidden;
+}
+.ps-cal-cell.empty { background: transparent; border: none; }
+.ps-cal-cell.today { border-color: var(--pink); border-width: 2px; }
+.ps-cal-daynum {
+  font-weight: 800;
+  color: var(--muted);
+  font-size: 10.5px;
+  margin-bottom: 3px;
+}
+.ps-cal-chip {
+  background: var(--card-alt);
+  color: var(--lime);
+  border-radius: 5px;
+  padding: 2px 4px;
+  font-size: 9px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 *, *::before, *::after { box-sizing: border-box; }
 html, body {
   margin: 0;
@@ -337,9 +430,18 @@ html, body {
   const db = firebase.database();
 
   const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const JOURS_COURT = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const ADMIN_KEY = 'ps-admin-token';
   let sessions = [];
   let adminPin = null;
+  let currentView = 'list';
+  let calendarMonth = new Date();
+  calendarMonth.setDate(1);
   const body = document.getElementById('ps-body');
+
+  function isAdminLoggedIn() {
+    try { return localStorage.getItem(ADMIN_KEY) === 'yes'; } catch(e) { return false; }
+  }
 
   function escapeHtml(s) {
     const d = document.createElement('div');
@@ -436,6 +538,7 @@ html, body {
   }
 
   async function checkOrSetPin(promptMsg) {
+    if (isAdminLoggedIn()) return true;
     try {
       const snap = await db.ref('adminPin').once('value');
       adminPin = snap.exists() ? snap.val() : null;
@@ -447,11 +550,23 @@ html, body {
       if (!newPin || newPin.length < 4) return false;
       adminPin = newPin;
       try { await db.ref('adminPin').set(newPin); } catch(e) {}
+      try { localStorage.setItem(ADMIN_KEY, 'yes'); } catch(e) {}
       return true;
     }
     const entered = await customPrompt(promptMsg, {placeholder: "Code secret"});
-    return entered === adminPin;
+    if (entered === adminPin) {
+      try { localStorage.setItem(ADMIN_KEY, 'yes'); } catch(e) {}
+      return true;
+    }
+    return false;
   }
+
+  window.psAdminLogout = async function() {
+    const ok = await customConfirm("Se déconnecter du mode organisatrice sur cet appareil ?");
+    if (!ok) return;
+    try { localStorage.removeItem(ADMIN_KEY); } catch(e) {}
+    render();
+  };
 
   function genId() {
     return 's' + Date.now() + Math.random().toString(36).slice(2,7);
@@ -670,7 +785,17 @@ html, body {
     `;
   }
 
-  function render() {
+  function adminZoneHtml() {
+    const loggedIn = isAdminLoggedIn();
+    return `
+      <div class="ps-admin-zone">
+        <button class="ps-btn-admin" onclick="psOpenAddModal()">+ Ajouter un créneau (organisatrice)</button>
+        ${loggedIn ? '<div class="ps-admin-status">✓ Organisatrice connectée sur cet appareil · <a href="#" onclick="psAdminLogout();return false;">se déconnecter</a></div>' : ''}
+      </div>
+    `;
+  }
+
+  function renderListView() {
     const sorted = sortSessions(sessions);
     const today = new Date().toISOString().slice(0,10);
     const upcoming = sorted.filter(s => s.date >= today);
@@ -683,16 +808,92 @@ html, body {
       html += '<div class="ps-section-label">PROCHAINES SÉANCES</div>';
       html += upcoming.map(sessionCard).join('');
     }
-    html += `
-      <div class="ps-admin-zone">
-        <button class="ps-btn-admin" onclick="psOpenAddModal()">+ Ajouter un créneau (organisatrice)</button>
-      </div>
-    `;
+    html += adminZoneHtml();
     if (past.length > 0) {
       html += '<div class="ps-section-label" style="opacity:0.6">Séances passées</div>';
       html += past.map(sessionCard).join('');
     }
-    body.innerHTML = html;
+    return html;
+  }
+
+  function renderCalendarView() {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    const firstOfMonth = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let startWeekday = firstOfMonth.getDay() - 1;
+    if (startWeekday < 0) startWeekday = 6;
+    const todayStr = new Date().toISOString().slice(0,10);
+
+    const byDate = {};
+    sessions.forEach(s => { (byDate[s.date] = byDate[s.date] || []).push(s); });
+
+    let cells = '';
+    for (let i = 0; i < startWeekday; i++) {
+      cells += '<div class="ps-cal-cell empty"></div>';
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const daySessions = (byDate[dateStr] || []).sort((a,b) => a.heure.localeCompare(b.heure));
+      const chips = daySessions.map(s =>
+        `<div class="ps-cal-chip" onclick="psShowSessionDetail('${s.id}')">${escapeHtml(s.heure)} ${escapeHtml(s.type)}</div>`
+      ).join('');
+      cells += `<div class="ps-cal-cell ${dateStr === todayStr ? 'today' : ''}">
+        <div class="ps-cal-daynum">${d}</div>
+        ${chips}
+      </div>`;
+    }
+
+    const weekdaysHtml = JOURS_COURT.map(j => `<div class="ps-cal-weekday">${j}</div>`).join('');
+
+    return `
+      <div class="ps-cal-header">
+        <button class="ps-cal-nav-btn" onclick="psCalendarNav(-1)">‹</button>
+        <div class="ps-cal-title">${monthNames[month]} ${year}</div>
+        <button class="ps-cal-nav-btn" onclick="psCalendarNav(1)">›</button>
+      </div>
+      <div class="ps-cal-grid">
+        ${weekdaysHtml}
+        ${cells}
+      </div>
+      ${adminZoneHtml()}
+    `;
+  }
+
+  window.psSetView = function(view) {
+    currentView = view;
+    render();
+  };
+
+  window.psCalendarNav = function(delta) {
+    calendarMonth.setMonth(calendarMonth.getMonth() + delta);
+    render();
+  };
+
+  window.psShowSessionDetail = function(sessionId) {
+    const s = sessions.find(x => x.id === sessionId);
+    if (!s) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'ps-modal-overlay';
+    overlay.innerHTML = `<div class="ps-modal" style="padding:0; overflow:visible; max-height:88vh; overflow-y:auto;">
+      ${sessionCard(s)}
+      <div style="padding:0 16px 16px 16px;">
+        <button class="ps-btn ps-btn-ghost" style="width:100%" onclick="this.closest('.ps-modal-overlay').remove()">Fermer</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  };
+
+  function render() {
+    const toggleHtml = `
+      <div class="ps-view-toggle">
+        <button class="ps-view-btn ${currentView === 'list' ? 'active' : ''}" onclick="psSetView('list')">📋 Liste</button>
+        <button class="ps-view-btn ${currentView === 'calendar' ? 'active' : ''}" onclick="psSetView('calendar')">📅 Calendrier</button>
+      </div>
+    `;
+    body.innerHTML = toggleHtml + (currentView === 'calendar' ? renderCalendarView() : renderListView());
   }
 
   initSessionsListener();

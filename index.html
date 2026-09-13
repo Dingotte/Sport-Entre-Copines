@@ -98,6 +98,10 @@
   overflow: hidden;
   position: relative;
 }
+.ps-card-past {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+}
 .ps-card-top {
   display: flex;
   justify-content: space-between;
@@ -535,6 +539,15 @@ html, body {
     return arr.slice().sort((a,b) => (a.date+a.heure).localeCompare(b.date+b.heure));
   }
 
+  function sessionEnd(s) {
+    const start = new Date(s.date + 'T' + s.heure + ':00');
+    return new Date(start.getTime() + (parseInt(s.duree, 10) || 0) * 60000);
+  }
+
+  function isSessionPast(s) {
+    return sessionEnd(s).getTime() <= Date.now();
+  }
+
   function initSessionsListener() {
     db.ref('sessions').on('value', (snapshot) => {
       const val = snapshot.val() || {};
@@ -762,15 +775,23 @@ html, body {
   }
 
   function sessionCard(s) {
+    const isPast = isSessionPast(s);
     const participants = s.participants || [];
     const namesHtml = participants.length
       ? '<div class="ps-names">' + participants.map((n, i) =>
-          `<span class="ps-name-chip">${escapeHtml(n)} <button onclick="psUnregisterAt('${s.id}', ${i})">✕</button></span>`
+          `<span class="ps-name-chip">${escapeHtml(n)} ${isPast ? '' : `<button onclick="psUnregisterAt('${s.id}', ${i})">✕</button>`}</span>`
         ).join('') + '</div>'
       : '<p class="ps-empty-note">Personne inscrite pour l’instant — sois la première !</p>';
 
+    const activeActions = `
+      <button class="ps-btn ps-btn-primary" onclick="psRegister('${s.id}')">Je m'inscris</button>
+      <button class="ps-btn ps-btn-ghost" onclick="psDownloadICS('${s.id}')">+ Rappel calendrier</button>
+      ${s.lienVisio ? `<button class="ps-btn ps-btn-visio" onclick="window.open('${escapeHtml(s.lienVisio)}','_blank')">Rejoindre la visio</button>` : ''}
+    `;
+    const pastNote = `<p class="ps-empty-note" style="margin-bottom:0;">Séance terminée</p>`;
+
     return `
-      <div class="ps-card">
+      <div class="ps-card ${isPast ? 'ps-card-past' : ''}">
         <div class="ps-card-top">
           <div class="ps-card-type">${escapeHtml(s.type)}</div>
           <div class="ps-duree-badge">${escapeHtml(String(s.duree))} min</div>
@@ -783,9 +804,7 @@ html, body {
           ${namesHtml}
         </div>
         <div class="ps-actions">
-          <button class="ps-btn ps-btn-primary" onclick="psRegister('${s.id}')">Je m'inscris</button>
-          <button class="ps-btn ps-btn-ghost" onclick="psDownloadICS('${s.id}')">+ Rappel calendrier</button>
-          ${s.lienVisio ? `<button class="ps-btn ps-btn-visio" onclick="window.open('${escapeHtml(s.lienVisio)}','_blank')">Rejoindre la visio</button>` : ''}
+          ${isPast ? pastNote : activeActions}
           <button class="ps-btn ps-btn-ghost" onclick="psOpenEditModal('${s.id}')" style="flex:0 0 auto;">✏️</button>
           <button class="ps-btn ps-btn-ghost" onclick="psDeleteSession('${s.id}')" style="flex:0 0 auto;">🗑</button>
         </div>
@@ -805,9 +824,8 @@ html, body {
 
   function renderListView() {
     const sorted = sortSessions(sessions);
-    const today = new Date().toISOString().slice(0,10);
-    const upcoming = sorted.filter(s => s.date >= today);
-    const past = sorted.filter(s => s.date < today);
+    const upcoming = sorted.filter(s => !isSessionPast(s));
+    const past = sorted.filter(s => isSessionPast(s));
 
     let html = '';
     if (upcoming.length === 0) {
@@ -905,6 +923,7 @@ html, body {
   }
 
   initSessionsListener();
+  setInterval(render, 60000);
 })();
 </script>
 
